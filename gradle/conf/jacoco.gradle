@@ -1,0 +1,65 @@
+apply plugin: "jacoco"
+
+ext {
+    jcLineMin = 0.80
+    jcClassMin = 0.81
+    jcInstructionMin = 0.85
+    jcMethodMin = 0.70
+
+    jacocoExcludes = [
+            '**/generated/**',
+    ]
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+        html.enabled = true
+        csv.enabled = false
+    }
+    sourceDirectories.from = files(sourceDirectories.files.collect {
+        fileTree(dir: it, exclude: jacocoExcludes)
+    })
+    classDirectories.from = files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: jacocoExcludes)
+    })
+}
+
+jacocoTestCoverageVerification {
+    sourceDirectories.setFrom jacocoTestReport.sourceDirectories
+    classDirectories.setFrom jacocoTestReport.classDirectories
+
+    violationRules {
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'LINE'
+                minimum = jcLineMin
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'CLASS'
+                minimum = jcClassMin
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'INSTRUCTION'
+                minimum = jcInstructionMin
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'METHOD'
+                minimum = jcMethodMin
+            }
+        }
+    }
+}
+
+tasks.check.dependsOn(jacocoTestCoverageVerification)
+tasks.test.finalizedBy(jacocoTestReport)

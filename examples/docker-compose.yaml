@@ -1,0 +1,70 @@
+# Copyright (c) 2020 Practice Insight Pty Ltd. All rights reserved.
+#
+# Docker Compose manifest for running WiseTime Allisa Connector.
+#
+# To start the WiseTime Connector, run the following command in the same directory as
+# this docker-compose.yaml file:
+#
+#   docker-compose -p wisetime-allisa-connector up -d
+#
+# To stop the WiseTime Connector, run the following command in the same directory:
+#
+#   docker-compose down
+#
+# This docker-compose.yaml file creates a local volume for persistence. To list the
+# volume:
+#
+#   docker volume ls
+#
+version: "3"
+services:
+  wisetime-allisa-connector:
+    labels:
+      description: WiseTime Allisa Connector
+    image: wisetime/wisetime-allisa-connector:latest
+    restart: always
+
+    # uncomment the ports: definition if the connector should work in webhook mode.
+    # ports:
+    #   - "8080:8080"
+
+    environment:
+      API_KEY: YOUR_WISETIME_CONNECT_API_KEY
+
+      # Set loglevel if other than default - INFO - required
+      # LOGLEVEL: DEBUG
+
+      # define appropriate timezone
+      TIMEZONE: Europe/Berlin
+
+      # Disable tag uploading by setting TAG_SCAN to DISABLED (tag upload must be done by, etg. using the SQL connector)
+      TAG_SCAN: ENABLED
+      TAG_UPSERT_PATH: /Allisa/
+      TAG_UPSERT_BATCH_SIZE: 500
+
+      # uncomment the following - as well as the above docker ports: definition - if the connector
+      # should work in webhook mode. If the connector should work using other than the default
+      # port, please adapt the docker ports: definition in line with the WEBHOOK_PORT variable.
+      # RECEIVE_POSTED_TIME: WEBHOOK
+      # CALLER_KEY: PICK_A_SECRET
+      # WEBHOOK_PORT: 8080
+
+      # specify if a time summary block should be added to the end of the narrative when posting time
+      ADD_SUMMARY_TO_NARRATIVE: "false"
+
+      ALLISA_API_KEY: samplekey
+      ALLISA_BASE_URL: "https://allisa.cloud/demo/"
+      ALLISA_CASE_TYPE: wisetime_cases
+      ALLISA_POST_TYPE: wisetime
+
+      # specify a field mapping for posting time to Allisa
+      # ALLISA_POST_FIELD_MAPPING: "pid:pid,userId:userId,narrative:narrative,startDateTime:startDateTime,totalTimeSecs:totalTimeSecs,chargeableTimeSecs:chargeableTimeSecs,activityCode:activityCode"
+
+      # Local cache for keeping track of cases and projects that have been synced
+      DATA_DIR: /usr/local/wisetime-connector/data/
+
+    volumes:
+      - data:/usr/local/wisetime-connector/data/
+volumes:
+  data:
+    driver: local
